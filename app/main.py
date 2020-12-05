@@ -1,92 +1,98 @@
 from flask import Flask
 from flask_restx import Api, Resource, fields
+# from libraries.myRele import myRele
 
 app = Flask(__name__)
-api = Api(app, version='1.0', title='TodoMVC API',
-    description='A simple TodoMVC API',
+api = Api(app, version='1.0', title='Raspi API',
+    description='API de comunicação com raspberry, controlando reles, e recebendo informações do arduino nano',
 )
 
-ns = api.namespace('todos', description='TODO operations')
 
-todo = api.model('Todo', {
-    'id': fields.Integer(readonly=True, description='The task unique identifier'),
-    'task': fields.String(required=True, description='The task details')
+ns = api.namespace('reles', description='Lista de reles')
+
+rele = api.model('Rele', {
+    'id': fields.Integer(readonly=True, description='identificador'),
+    'GPIO': fields.Integer(required=True, description='Numero da porta GPIO do rele'),
+    'tag': fields.String(required=True,description='Tag identificação do rele'),
+    'descricao': fields.String(required=True, description='Localização e funcionamento do rele'),
+    'status': fields.Boolean(required=True, description='true para ligado, false para deslilgado'),
+    'date_updated': fields.DateTime(dt_format='rfc822')
 })
 
 
-class TodoDAO(object):
+class ReleDAO(object):
     def __init__(self):
         self.counter = 0
-        self.todos = []
+        self.reles = []
 
     def get(self, id):
-        for todo in self.todos:
-            if todo['id'] == id:
-                return todo
-        api.abort(404, "Todo {} doesn't exist".format(id))
+        for rele in self.reles:
+            if rele['id'] == id:
+                return rele
+        api.abort(404, "Rele {} não existe".format(id))
 
     def create(self, data):
-        todo = data
-        todo['id'] = self.counter = self.counter + 1
-        self.todos.append(todo)
-        return todo
+        rele = data
+        print(rele)
+        rele['id'] = self.counter = self.counter + 1
+        self.reles.append(rele)
+        return rele
 
     def update(self, id, data):
-        todo = self.get(id)
-        todo.update(data)
-        return todo
+        rele = self.get(id)
+        rele.update(data)
+        return rele
 
     def delete(self, id):
-        todo = self.get(id)
-        self.todos.remove(todo)
+        rele = self.get(id)
+        self.reles.remove(rele)
 
-
-DAO = TodoDAO()
-DAO.create({'task': 'Build an API'})
-DAO.create({'task': '?????'})
-DAO.create({'task': 'profit!'})
+RDAO = ReleDAO()
+RDAO.create({'GPIO': 14, 'tag':'rele-1', 'descricao': 'rele 1', 'status':False})
+RDAO.create({'GPIO': 17, 'tag':'rele-2', 'descricao': 'rele 2', 'status':False})
+RDAO.create({'GPIO': 18, 'tag':'rele-3', 'descricao': 'rele 3', 'status':False})
 
 
 @ns.route('/')
-class TodoList(Resource):
+class ReleList(Resource):
     '''Shows a list of all todos, and lets you POST to add new tasks'''
-    @ns.doc('list_todos')
-    @ns.marshal_list_with(todo)
+    @ns.doc('list_reles')
+    @ns.marshal_list_with(rele)
     def get(self):
         '''List all tasks'''
-        return DAO.todos
+        return RDAO.reles
 
-    @ns.doc('create_todo')
-    @ns.expect(todo)
-    @ns.marshal_with(todo, code=201)
+    @ns.doc('create_rele')
+    @ns.expect(rele)
+    @ns.marshal_with(rele, code=201)
     def post(self):
         '''Create a new task'''
-        return DAO.create(api.payload), 201
+        return RDAO.create(api.payload), 201
 
 
 @ns.route('/<int:id>')
-@ns.response(404, 'Todo not found')
-@ns.param('id', 'The task identifier')
-class Todo(Resource):
+@ns.response(404, 'Rele not found')
+@ns.param('id', 'Nenhum rele identificado')
+class Rele(Resource):
     '''Show a single todo item and lets you delete them'''
-    @ns.doc('get_todo')
-    @ns.marshal_with(todo)
+    @ns.doc('get_rele')
+    @ns.marshal_with(rele)
     def get(self, id):
         '''Fetch a given resource'''
-        return DAO.get(id)
+        return RDAO.get(id)
 
-    @ns.doc('delete_todo')
-    @ns.response(204, 'Todo deleted')
+    @ns.doc('delete_rele')
+    @ns.response(204, 'Rle deleted')
     def delete(self, id):
         '''Delete a task given its identifier'''
-        DAO.delete(id)
+        RDAO.delete(id)
         return '', 204
 
-    @ns.expect(todo)
-    @ns.marshal_with(todo)
+    @ns.expect(rele)
+    @ns.marshal_with(rele)
     def put(self, id):
         '''Update a task given its identifier'''
-        return DAO.update(id, api.payload)
+        return RDAO.update(id, api.payload)
 
 
 if __name__ == '__main__':

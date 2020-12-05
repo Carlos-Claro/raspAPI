@@ -12,4 +12,3 @@ Recebe informações do arduino nano:
 
 
 
-
