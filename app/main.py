@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_restx import Api, Resource, fields
-# from libraries.myRele import myRele
+from libraries.myRele import MyRele
 
 app = Flask(__name__)
 api = Api(app, version='1.0', title='Raspi API',
@@ -25,6 +25,7 @@ class ReleDAO(object):
         self.counter = 0
         self.reles = []
 
+
     def get(self, id):
         for rele in self.reles:
             if rele['id'] == id:
@@ -34,13 +35,18 @@ class ReleDAO(object):
     def create(self, data):
         rele = data
         print(rele)
-        rele['id'] = self.counter = self.counter + 1
         self.reles.append(rele)
         return rele
 
     def update(self, id, data):
         rele = self.get(id)
-        rele.update(data)
+        if rele['status']:
+            MyRele(id).off()
+            rele['status'] = 0
+        else:
+            MyRele(id).on()
+            rele['status'] = 1
+        rele.update(rele)
         return rele
 
     def delete(self, id):
@@ -48,9 +54,10 @@ class ReleDAO(object):
         self.reles.remove(rele)
 
 RDAO = ReleDAO()
-RDAO.create({'GPIO': 14, 'tag':'rele-1', 'descricao': 'rele 1', 'status':False})
-RDAO.create({'GPIO': 17, 'tag':'rele-2', 'descricao': 'rele 2', 'status':False})
-RDAO.create({'GPIO': 18, 'tag':'rele-3', 'descricao': 'rele 3', 'status':False})
+RDAO.create({'id':14, 'GPIO': 14, 'tag':'rele-1', 'descricao': 'rele 1', 'status':MyRele(14).check()})
+# RDAO.create({'GPIO': 17, 'tag':'rele-2', 'descricao': 'rele 2', 'status':False})
+RDAO.create({'id':18, 'GPIO': 18, 'tag':'rele-3', 'descricao': 'rele 3', 'status':MyRele(18).check()})
+
 
 
 @ns.route('/')
@@ -96,4 +103,4 @@ class Rele(Resource):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='127.0.0.1',port=80,debug=True)
