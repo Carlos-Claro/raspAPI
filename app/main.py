@@ -102,43 +102,43 @@ class Rele(Resource):
     def put(self, id):
         '''Update a task given its identifier'''
         return RDAO.update(id, api.payload)
-
-nsa = api.namespace('temperatura', description='exibe condições meterológicas')
-temperatura = api.model('Temperatura', {
-    'dht22': fields.Integer(readonly=True, description='Sensor de tempratura'),
-    'luminosidade': fields.Integer(required=True, description='Sensor de Luminosidade'),
-})
-
-
-class TemperaturaDAO(object):
-    def __init__(self):
-        self.temperatura = []
-
-
-    def get(self, id):
-        comunicacao = serial.Serial('/dev/ttyUSB0', 9600)
-        try:
-            a = comunicacao.readline()
-            b = json.loads(a.decode("utf-8"))
-            self.temperatura = b
-        except (OSError, serial.SerialException):
-            print(serial.SerialException)
-            pass
-        api.abort(404, "Rele {} não existe".format(id))
-
-
-temp = TemperaturaDAO()
-
-@nsa.route('/')
-class TempList(Resource):
-    '''Shows a list of all todos, and lets you POST to add new tasks'''
-    @nsa.doc('list_temp')
-    @nsa.marshal_list_with(temp)
-    def get(self):
-        '''List all tasks'''
-        return temp.temperatura
-
-
+#
+# nsa = api.namespace('temperatura', description='exibe condições meterológicas')
+# temperatura = api.model('Temperatura', {
+#     'dht22': fields.Integer(readonly=True, description='Sensor de tempratura'),
+#     'luminosidade': fields.Integer(required=True, description='Sensor de Luminosidade'),
+# })
+#
+#
+# class TemperaturaDAO(object):
+#     def __init__(self):
+#         self.temperatura = []
+#
+#
+#     def get(self, id):
+#         comunicacao = serial.Serial('/dev/ttyUSB0', 9600)
+#         try:
+#             a = comunicacao.readline()
+#             b = json.loads(a.decode("utf-8"))
+#             self.temperatura = b
+#         except (OSError, serial.SerialException):
+#             print(serial.SerialException)
+#             pass
+#         api.abort(404, "Rele {} não existe".format(id))
+#
+#
+# temp = TemperaturaDAO()
+#
+# @nsa.route('/')
+# class TempList(Resource):
+#     '''Shows a list of all todos, and lets you POST to add new tasks'''
+#     @nsa.doc('list_temp')
+#     @nsa.marshal_list_with(temp)
+#     def get(self):
+#         '''List all tasks'''
+#         return temp.temperatura
+#
+#
 
 
 if __name__ == '__main__':
