@@ -103,7 +103,7 @@ class Rele(Resource):
         '''Update a task given its identifier'''
         return RDAO.update(id, api.payload)
 
-ns = api.namespace('temperatura', description='exibe condições meterológicas')
+nsa = api.namespace('temperatura', description='exibe condições meterológicas')
 temperatura = api.model('Temperatura', {
     'dht22': fields.Integer(readonly=True, description='Sensor de tempratura'),
     'luminosidade': fields.Integer(required=True, description='Sensor de Luminosidade'),
@@ -129,11 +129,11 @@ class TemperaturaDAO(object):
 
 temp = TemperaturaDAO()
 
-@ns.route('/')
+@nsa.route('/')
 class TempList(Resource):
     '''Shows a list of all todos, and lets you POST to add new tasks'''
-    @ns.doc('list_temp')
-    @ns.marshal_list_with(temp)
+    @nsa.doc('list_temp')
+    @nsa.marshal_list_with(temp)
     def get(self):
         '''List all tasks'''
         return temp.temperatura
